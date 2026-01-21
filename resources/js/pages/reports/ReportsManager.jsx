@@ -51,13 +51,15 @@ const ReportsManager = () => {
             const response = await api.get('/reports/export-csv', {
                 responseType: 'blob',
             });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const blob = new Blob([response.data], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `inventory-report-${new Date().toISOString().split('T')[0]}.csv`);
+            link.download = `inventory-report-${new Date().toISOString().split('T')[0]}.csv`;
             document.body.appendChild(link);
             link.click();
-            link.remove();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
 
             Swal.fire({
                 icon: 'success',
@@ -80,15 +82,37 @@ const ReportsManager = () => {
             const response = await api.get('/documents/valuation', {
                 responseType: 'blob',
             });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `inventory-valuation-${new Date().toISOString().split('T')[0]}.pdf`);
+            link.download = `inventory-valuation-${new Date().toISOString().split('T')[0]}.pdf`;
             document.body.appendChild(link);
             link.click();
-            link.remove();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
         } catch (err) {
             Swal.fire('Error', 'Failed to generate PDF', 'error');
+        }
+    };
+
+    const handleDownloadReceipt = async (movementId) => {
+        try {
+            const response = await api.get(`/documents/receipt/${movementId}`, {
+                responseType: 'blob',
+            });
+
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `receipt-${movementId}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            Swal.fire('Error', 'Failed to generate receipt PDF', 'error');
         }
     };
 

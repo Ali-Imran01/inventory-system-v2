@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,5 +31,10 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\Gate::define('view-only', function ($user) {
             return in_array($user->role, ['admin', 'staff', 'viewer']);
         });
+
+        // Force HTTPS if we are on the ngrok tunnel
+        if (str_contains(request()->getHttpHost(), 'ngrok-free.dev')) {
+            URL::forceScheme('https');
+        }
     }
 }

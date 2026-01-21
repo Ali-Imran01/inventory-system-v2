@@ -12,13 +12,15 @@ import {
     PackageSearch,
     AlertCircle,
     Scan,
-    Upload
+    Upload,
+    QrCode
 } from 'lucide-react';
 import api from '../../api/client';
 import Swal from 'sweetalert2';
 import useAuthStore from '../../store/useAuthStore';
 import ProductForm from './ProductForm';
 import ImportManager from './ImportManager';
+import ProductLabelModal from './ProductLabelModal';
 import BarcodeScanner from '../../components/BarcodeScanner';
 
 const ProductList = () => {
@@ -26,10 +28,14 @@ const ProductList = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [isImportOpen, setIsImportOpen] = useState(false);
+    const [isQrOpen, setIsQrOpen] = useState(false);
+    const [selectedQrProduct, setSelectedQrProduct] = useState(null);
 
     const handleScan = (decodedText) => {
         setIsScannerOpen(false);
@@ -45,11 +51,23 @@ const ProductList = () => {
         });
     };
 
+    const fetchCategories = async () => {
+        try {
+            const response = await api.get('/categories');
+            setCategories(response.data);
+        } catch (error) {
+            console.error('Failed to fetch categories:', error);
+        }
+    };
+
     const fetchProducts = async () => {
         setLoading(true);
         try {
             const response = await api.get('/products', {
-                params: { search }
+                params: {
+                    search,
+                    category_id: selectedCategory || undefined
+                }
             });
             setProducts(response.data);
         } catch (error) {
@@ -60,12 +78,16 @@ const ProductList = () => {
     };
 
     useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
             fetchProducts();
         }, 500);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [search]);
+    }, [search, selectedCategory]);
 
     const handleDelete = async (id) => {
         const result = await Swal.fire({
@@ -97,6 +119,11 @@ const ProductList = () => {
     const handleAddNew = () => {
         setEditingProduct(null);
         setIsFormOpen(true);
+    };
+
+    const handleOpenQr = (product) => {
+        setSelectedQrProduct(product);
+        setIsQrOpen(true);
     };
 
     return (
@@ -148,10 +175,19 @@ const ProductList = () => {
                         <Scan size={20} />
                     </button>
                 </div>
-                <button className="flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-600 px-6 py-3 rounded-2xl font-bold transition-all">
-                    <Filter className="w-5 h-5" />
-                    <span>Filters</span>
-                </button>
+                <div className="flex items-center gap-2 bg-slate-50 border-none rounded-2xl px-4 py-1">
+                    <Filter className="w-5 h-5 text-slate-400" />
+                    <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="bg-transparent border-none py-3 text-sm font-bold text-slate-600 focus:ring-0 outline-none cursor-pointer min-w-[140px]"
+                    >
+                        <option value="">All Categories</option>
+                        {categories.map(cat => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             {/* Content Area */}
@@ -224,6 +260,13 @@ const ProductList = () => {
                                             {user?.role !== 'viewer' && (
                                                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <button
+                                                        onClick={() => handleOpenQr(product)}
+                                                        className="p-2 hover:bg-slate-50 text-slate-400 hover:text-blue-600 rounded-xl transition-all"
+                                                        title="View QR Label"
+                                                    >
+                                                        <QrCode size={18} />
+                                                    </button>
+                                                    <button
                                                         onClick={() => handleEdit(product)}
                                                         className="p-2 hover:bg-blue-50 text-slate-400 hover:text-blue-600 rounded-xl transition-all"
                                                     >
@@ -279,6 +322,12 @@ const ProductList = () => {
                                     {user?.role !== 'viewer' ? (
                                         <div className="flex items-center justify-end gap-2 text-slate-400">
                                             <button
+                                                onClick={() => handleOpenQr(product)}
+                                                className="w-full flex items-center justify-center bg-slate-50 hover:bg-slate-100 hover:text-blue-600 rounded-2xl transition-all p-3"
+                                            >
+                                                <QrCode size={20} />
+                                            </button>
+                                            <button
                                                 onClick={() => handleEdit(product)}
                                                 className="w-full h-full flex items-center justify-center bg-slate-50 hover:bg-blue-50 hover:text-blue-600 rounded-2xl transition-all p-3"
                                             >
@@ -330,6 +379,12 @@ const ProductList = () => {
                     onSuccess={fetchProducts}
                 />
             )}
+
+            <ProductLabelModal
+                isOpen={isQrOpen}
+                onClose={() => setIsQrOpen(false)}
+                product={selectedQrProduct}
+            />
         </div>
     );
 };

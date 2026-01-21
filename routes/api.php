@@ -15,8 +15,10 @@ use App\Http\Controllers\API\ReportController;
 use App\Http\Controllers\API\DocumentController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\ImportController;
+use App\Http\Controllers\API\QrCodeController;
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/products/{product}/qrcode', [QrCodeController::class, 'generateProductQr']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
@@ -49,7 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/charts/warehouse-comparison', [ReportController::class, 'warehouseComparison']);
     });
 
-    // PDF Documents
+    // PDF Documents & Labels
     Route::get('/documents/receipt/{movement}', [DocumentController::class, 'stockMovementReceipt']);
     Route::get('/documents/valuation', [DocumentController::class, 'inventoryValuationReport']);
 
