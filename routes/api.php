@@ -14,6 +14,7 @@ use App\Http\Controllers\API\AuditLogController;
 use App\Http\Controllers\API\ReportController;
 use App\Http\Controllers\API\DocumentController;
 use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\ImportController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -54,4 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Team Management
     Route::apiResource('/users', UserController::class);
+
+    // Data Import
+    Route::post('/import/products', [ImportController::class, 'importProducts']);
 });

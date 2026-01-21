@@ -11,12 +11,14 @@ import {
     Loader2,
     PackageSearch,
     AlertCircle,
-    Scan
+    Scan,
+    Upload
 } from 'lucide-react';
 import api from '../../api/client';
 import Swal from 'sweetalert2';
 import useAuthStore from '../../store/useAuthStore';
 import ProductForm from './ProductForm';
+import ImportManager from './ImportManager';
 import BarcodeScanner from '../../components/BarcodeScanner';
 
 const ProductList = () => {
@@ -27,6 +29,7 @@ const ProductList = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const [isImportOpen, setIsImportOpen] = useState(false);
 
     const handleScan = (decodedText) => {
         setIsScannerOpen(false);
@@ -105,13 +108,22 @@ const ProductList = () => {
                     <p className="text-slate-500 mt-1 font-medium">Manage your inventory items and stock levels</p>
                 </div>
                 {user?.role !== 'viewer' && (
-                    <button
-                        onClick={handleAddNew}
-                        className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95"
-                    >
-                        <Plus className="w-5 h-5" />
-                        <span>Add New Product</span>
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setIsImportOpen(true)}
+                            className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-600 px-6 py-3 rounded-2xl font-bold border border-slate-100 shadow-sm transition-all active:scale-95"
+                        >
+                            <Upload className="w-5 h-5" />
+                            <span>Import</span>
+                        </button>
+                        <button
+                            onClick={handleAddNew}
+                            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95"
+                        >
+                            <Plus className="w-5 h-5" />
+                            <span>Add New Product</span>
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -308,6 +320,14 @@ const ProductList = () => {
                 <BarcodeScanner
                     onScan={handleScan}
                     onClose={() => setIsScannerOpen(false)}
+                />
+            )}
+
+            {isImportOpen && (
+                <ImportManager
+                    isOpen={isImportOpen}
+                    onClose={() => setIsImportOpen(false)}
+                    onSuccess={fetchProducts}
                 />
             )}
         </div>

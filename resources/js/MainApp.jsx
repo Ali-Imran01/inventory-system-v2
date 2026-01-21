@@ -16,6 +16,7 @@ import WarehouseList from './pages/warehouses/WarehouseList';
 import UserList from './pages/users/UserList';
 import ReportsManager from './pages/reports/ReportsManager';
 import AuditLog from './pages/reports/AuditLog';
+import CategoryList from './pages/categories/CategoryList';
 
 const App = () => {
     const { fetchMe, isAuthenticated } = useAuthStore();
@@ -101,7 +102,14 @@ const App = () => {
                             </DashboardLayout>
                         }
                     />
-                    <Route path="/categories" element={<DashboardLayout><div className="p-8 bg-white rounded-3xl border border-slate-100 shadow-sm text-center font-bold text-slate-400">Categories Module Coming Soon</div></DashboardLayout>} />
+                    <Route
+                        path="/categories"
+                        element={
+                            <DashboardLayout>
+                                <CategoryList />
+                            </DashboardLayout>
+                        }
+                    />
                 </Route>
 
                 {/* Fallback */}
